@@ -141,6 +141,7 @@ onMounted(load)
       <p v-if="passwordStatus" class="status">{{ passwordStatus }}</p>
       <p v-if="passwordError" class="error">{{ passwordError }}</p>
       <button
+        type="button"
         class="btn"
         :disabled="savingPassword || !currentPassword || !newPassword || !confirmPassword"
         @click="savePassword"
@@ -187,7 +188,7 @@ onMounted(load)
 
       <p v-if="status" class="status">{{ status }}</p>
       <p v-if="error" class="error">{{ error }}</p>
-      <button class="btn" :disabled="saving" @click="save">
+      <button type="button" class="btn" :disabled="saving" @click="save">
         {{ saving ? '保存中…' : '保存' }}
       </button>
     </div>

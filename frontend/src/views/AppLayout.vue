@@ -24,7 +24,7 @@ function logout() {
         </nav>
         <div class="user">
           <span class="muted">{{ auth.email }}</span>
-          <button class="btn btn-outline btn-sm" @click="logout">退出</button>
+        <button type="button" class="btn btn-outline btn-sm" @click="logout">退出</button>
         </div>
       </div>
     </header>
@@ -40,7 +40,8 @@ function logout() {
   min-height: 100vh;
 }
 .header {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;

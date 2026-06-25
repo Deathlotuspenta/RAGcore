@@ -103,7 +103,7 @@ onUnmounted(() => {
           @keydown.ctrl.enter="submit"
         />
       </div>
-      <button class="btn" :disabled="loading || !question.trim()" @click="submit">
+      <button type="button" class="btn" :disabled="loading || !question.trim()" @click="submit">
         <span v-if="loading && !answer" class="spinner sm" />
         {{ loading && !answer ? '检索中…' : loading ? '生成中…' : '提问' }}
       </button>
@@ -335,61 +335,5 @@ h2 {
   gap: 0.5rem;
   padding: 0.85rem 1.25rem;
   border-top: 1px solid var(--border);
-}
-
-/* Markdown rendered content */
-.markdown-body :deep(h1),
-.markdown-body :deep(h2),
-.markdown-body :deep(h3) {
-  margin: 1rem 0 0.5rem;
-  line-height: 1.4;
-}
-.markdown-body :deep(h1:first-child),
-.markdown-body :deep(h2:first-child),
-.markdown-body :deep(h3:first-child) {
-  margin-top: 0;
-}
-.markdown-body :deep(p) {
-  margin: 0.5rem 0;
-}
-.markdown-body :deep(ul),
-.markdown-body :deep(ol) {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-.markdown-body :deep(li) {
-  margin: 0.25rem 0;
-}
-.markdown-body :deep(code) {
-  background: #f1f5f9;
-  padding: 0.15rem 0.35rem;
-  border-radius: 4px;
-  font-size: 0.875em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-.markdown-body :deep(pre) {
-  background: #1e293b;
-  color: #e2e8f0;
-  padding: 0.85rem 1rem;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 0.75rem 0;
-}
-.markdown-body :deep(pre code) {
-  background: none;
-  padding: 0;
-  color: inherit;
-}
-.markdown-body :deep(blockquote) {
-  margin: 0.75rem 0;
-  padding-left: 1rem;
-  border-left: 3px solid var(--border);
-  color: var(--muted);
-}
-.markdown-body :deep(strong) {
-  font-weight: 600;
-}
-.markdown-body :deep(a) {
-  color: var(--primary);
 }
 </style>

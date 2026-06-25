@@ -107,10 +107,10 @@ onUnmounted(() => {
           multiple
           @change="onFileChange"
         />
-        <button class="btn btn-outline" :disabled="submitting" @click="pickFile">
+        <button type="button" class="btn btn-outline" :disabled="submitting" @click="pickFile">
           批量导入文件
         </button>
-        <button class="btn" @click="router.push('/notes/new')">新建笔记</button>
+        <button type="button" class="btn" @click="router.push('/notes/new')">新建笔记</button>
       </div>
     </div>
 
@@ -132,7 +132,9 @@ onUnmounted(() => {
             {{ new Date(note.updated_at).toLocaleString() }}
           </p>
         </div>
-        <button class="btn btn-outline btn-sm" @click="remove(note.id)">删除</button>
+        <button type="button" class="btn btn-ghost-danger btn-sm" @click.stop="remove(note.id)">
+          删除
+        </button>
       </li>
     </ul>
   </div>
