@@ -22,6 +22,9 @@ const error = ref('')
 const status = ref('')
 const textareaRef = ref(null)
 const editorHost = ref(null)
+const editorFullscreen = ref(false)
+
+const NORMAL_EDITOR_HEIGHT = 460
 
 let vditor = null
 const editorReady = ref(false)
@@ -42,9 +45,10 @@ async function initEditor() {
   vditor = new Vditor(editorHost.value, {
     mode: 'ir',
     lang: 'zh_CN',
+    cdn: '/vditor',
     placeholder: '# 标题\n\n输入 ## 你好 等 Markdown，此处即时显示效果',
     cache: { enable: false },
-    minHeight: 400,
+    height: NORMAL_EDITOR_HEIGHT,
     toolbar: [
       'headings',
       'bold',
@@ -72,6 +76,7 @@ async function initEditor() {
     after: () => {
       editorReady.value = true
       if (submitting.value) vditor.disabled()
+      applyEditorLayout()
     },
   })
 }
@@ -83,11 +88,34 @@ function syncContentFromEditor() {
 }
 
 function resizeTextarea() {
-  const el = textareaRef.value
-  if (!el) return
-  el.style.height = 'auto'
-  const next = Math.min(Math.max(el.scrollHeight, 400), 720)
-  el.style.height = `${next}px`
+  // 正文使用固定高度 + 滚动条，不再随内容增长
+}
+
+function applyEditorLayout() {
+  if (!vditor || !editorReady.value || !editorHost.value) return
+  const root = editorHost.value.querySelector('.vditor')
+  if (!root) return
+  if (editorFullscreen.value) {
+    root.style.height = '100%'
+  } else {
+    root.style.height = `${NORMAL_EDITOR_HEIGHT}px`
+  }
+}
+
+function setEditorFullscreen(on) {
+  editorFullscreen.value = on
+  document.body.style.overflow = on ? 'hidden' : ''
+  nextTick(applyEditorLayout)
+}
+
+function toggleEditorFullscreen() {
+  setEditorFullscreen(!editorFullscreen.value)
+}
+
+function onFullscreenKey(e) {
+  if (e.key === 'Escape' && editorFullscreen.value) {
+    setEditorFullscreen(false)
+  }
 }
 
 async function load() {
@@ -182,11 +210,16 @@ watch(() => route.params.id, async () => {
 })
 
 onMounted(async () => {
+  window.addEventListener('keydown', onFullscreenKey)
   await load()
   if (fileType.value === 'md') await initEditor()
 })
 
-onBeforeUnmount(() => destroyEditor())
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onFullscreenKey)
+  document.body.style.overflow = ''
+  destroyEditor()
+})
 </script>
 
 <template>
@@ -234,14 +267,45 @@ onBeforeUnmount(() => destroyEditor())
         </div>
       </div>
 
-      <section class="editor-section" aria-label="正文">
-        <label class="section-label">正文</label>
-        <p v-if="fileType === 'md'" class="section-hint muted">
-          同一编辑框内即时渲染，输入 <code>## 你好</code> 会直接显示为标题
-        </p>
-        <p v-else class="section-hint muted">纯文本模式，不做 Markdown 渲染</p>
+      <section
+        class="editor-section"
+        :class="{ 'is-fullscreen': editorFullscreen }"
+        aria-label="正文"
+      >
+        <div class="section-header">
+          <div>
+            <label class="section-label">正文</label>
+            <p v-if="fileType === 'md' && !editorFullscreen" class="section-hint muted">
+              同一编辑框内即时渲染，输入 <code>## 你好</code> 会直接显示为标题
+            </p>
+            <p v-else-if="!editorFullscreen" class="section-hint muted">纯文本模式，不做 Markdown 渲染</p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-outline btn-sm fullscreen-btn"
+            :title="editorFullscreen ? '退出全屏 (Esc)' : '全屏编辑'"
+            @click="toggleEditorFullscreen"
+          >
+            {{ editorFullscreen ? '缩小' : '全屏' }}
+          </button>
+        </div>
 
-        <div class="editor-unified" :class="{ 'is-txt': fileType === 'txt', 'is-md': fileType === 'md' }">
+        <div
+          v-if="editorFullscreen"
+          class="fullscreen-topbar"
+        >
+          <span class="fullscreen-title">{{ title.trim() || '未命名笔记' }}</span>
+          <span class="muted fullscreen-hint">Esc 或点「缩小」退出全屏</span>
+        </div>
+
+        <div
+          class="editor-unified"
+          :class="{ 'is-txt': fileType === 'txt', 'is-md': fileType === 'md', 'is-fullscreen': editorFullscreen }"
+        >
+          <div v-if="fileType === 'md' && !editorReady" class="editor-loading">
+            <span class="spinner" />
+            <span class="muted">编辑器加载中…</span>
+          </div>
           <div v-show="fileType === 'md'" ref="editorHost" class="vditor-host" />
           <textarea
             v-show="fileType === 'txt'"
@@ -309,8 +373,21 @@ h1 {
   margin-bottom: 0.25rem;
 }
 
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.fullscreen-btn {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
 .section-hint {
-  margin: 0 0 0.65rem;
+  margin: 0;
   font-size: 0.8rem;
 }
 
@@ -323,12 +400,87 @@ h1 {
 }
 
 .editor-unified {
+  position: relative;
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
   transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.editor-section.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  margin: 0;
+  padding: 1rem 1.25rem 1.25rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.editor-section.is-fullscreen .section-header {
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+}
+
+.fullscreen-topbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.fullscreen-title {
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fullscreen-hint {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.editor-unified.is-fullscreen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-unified.is-fullscreen .vditor-host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-unified.is-fullscreen .editor-input {
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: #fff;
 }
 
 .editor-unified:focus-within {
@@ -341,11 +493,28 @@ h1 {
   border-radius: 0;
 }
 
+.editor-unified.is-fullscreen .vditor-host :deep(.vditor) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+}
+
+.editor-unified.is-fullscreen .vditor-host :deep(.vditor-content) {
+  flex: 1;
+  min-height: 0;
+}
+
 .vditor-host :deep(.vditor-toolbar) {
   border-bottom: 1px solid var(--border);
   background: #f8fafc;
   padding-left: 0.35rem;
   padding-right: 0.35rem;
+}
+
+.vditor-host :deep(.vditor-content) {
+  overflow-y: auto;
 }
 
 .vditor-host :deep(.vditor-ir) {
@@ -361,7 +530,7 @@ h1 {
 .editor-input {
   display: block;
   width: 100%;
-  min-height: 400px;
+  height: 460px;
   padding: 1rem 1.1rem;
   border: none;
   resize: none;
@@ -389,6 +558,11 @@ h1 {
 
 .btn .spinner {
   margin-right: 0.35rem;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 640px) {

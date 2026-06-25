@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# 本地内置的编辑器(vditor)运行时资源，需随仓库分发以支持离线使用
+!public/vditor/
+!public/vditor/**
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

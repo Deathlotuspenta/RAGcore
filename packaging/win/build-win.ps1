@@ -63,7 +63,12 @@ try {
     $SitePackages = Join-Path $EmbedDir "Lib\site-packages"
     New-Item -ItemType Directory -Path $SitePackages -Force | Out-Null
     & $embedPython -m pip install --upgrade pip
-    & $embedPython -m pip install -r (Join-Path $Backend "requirements-lock.txt") --no-warn-script-location
+    $Requirements = Join-Path $Backend "requirements-lock.txt"
+    $WinRequirements = Join-Path $Stage "requirements-win.txt"
+    Get-Content $Requirements |
+        Where-Object { $_ -notmatch "^\s*uvloop(?:==|>=|<=|~=|>|<|$)" } |
+        Set-Content -Path $WinRequirements -Encoding ASCII
+    & $embedPython -m pip install -r $WinRequirements --no-warn-script-location
 
     Write-Host ""
     Write-Host "==> 组装安装目录..."
@@ -84,9 +89,12 @@ try {
     New-Item -ItemType Directory -Path (Split-Path $FrontendOut) -Force | Out-Null
     Copy-Item -Recurse -Force (Join-Path $Frontend "dist") $FrontendOut
 
+    Write-Host ""
+    Write-Host "==> 编译桌面启动器 RAGcore.exe ..."
+    $LauncherExe = Join-Path $OutDir "RAGcore.exe"
+    & (Join-Path $PSScriptRoot "build-launcher.ps1") -OutExe $LauncherExe
+
     Copy-Item (Join-Path $Packaging "launcher.py") $OutDir
-    Copy-Item (Join-Path $Packaging "win\RAGcore.cmd") $OutDir
-    Copy-Item (Join-Path $Packaging "win\RAGcore.vbs") $OutDir
     Copy-Item (Join-Path $Packaging "用户安装说明.txt") (Join-Path $OutDir "安装说明.txt")
 
     Write-Host ""
@@ -94,7 +102,7 @@ try {
     $size = (Get-ChildItem $OutDir -Recurse | Measure-Object -Property Length -Sum).Sum / 1GB
     Write-Host ("大小: {0:N2} GB" -f $size)
     Write-Host ""
-    Write-Host "用户：双击 RAGcore.vbs 或运行 RAGcore.cmd"
+    Write-Host "用户：双击 RAGcore.exe"
     Write-Host "安装包（可选）：安装 Inno Setup 后执行"
     Write-Host "  iscc packaging\win\installer.iss"
 }

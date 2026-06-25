@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import * as authApi from '../api/auth'
 import * as settingsApi from '../api/settings'
 
-const modelName = ref('deepseek-chat')
+const modelName = ref('deepseek-v4-flash')
 const modelUrl = ref('https://api.deepseek.com/v1/chat/completions')
 const apiKey = ref('')
 const apiKeyMasked = ref('')
@@ -22,8 +22,13 @@ const passwordStatus = ref('')
 
 const presets = [
   {
-    label: 'DeepSeek Chat',
-    model_name: 'deepseek-chat',
+    label: 'DeepSeek V4 Flash（推荐）',
+    model_name: 'deepseek-v4-flash',
+    model_url: 'https://api.deepseek.com/v1/chat/completions',
+  },
+  {
+    label: 'DeepSeek V4 Pro',
+    model_name: 'deepseek-v4-pro',
     model_url: 'https://api.deepseek.com/v1/chat/completions',
   },
 ]
@@ -169,7 +174,7 @@ onMounted(load)
 
       <div class="field">
         <label>模型名称</label>
-        <input v-model="modelName" type="text" placeholder="deepseek-chat" />
+        <input v-model="modelName" type="text" placeholder="deepseek-v4-flash" />
       </div>
       <div class="field">
         <label>API 地址</label>

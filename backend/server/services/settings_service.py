@@ -30,7 +30,7 @@ def get_llm_settings() -> dict:
         masked = f"{'*' * max(0, len(key) - 4)}{key[-4:]}"
 
     return {
-        "model_name": config.LLM_MODEL_NAME or "deepseek-chat",
+        "model_name": config.LLM_MODEL_NAME or "deepseek-v4-flash",
         "model_url": config.LLM_MODEL_URL
         or "https://api.deepseek.com/v1/chat/completions",
         "api_key_set": bool(key and key not in _PLACEHOLDER),

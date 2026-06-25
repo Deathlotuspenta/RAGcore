@@ -7,6 +7,20 @@ import httpx
 from server import config
 
 
+def _llm_payload(messages: list[dict], *, stream: bool = False) -> dict:
+    """Build DeepSeek chat request body (V4 non-thinking by default)."""
+    payload: dict = {
+        "model": config.LLM_MODEL_NAME,
+        "messages": messages,
+    }
+    if stream:
+        payload["stream"] = True
+    model = (config.LLM_MODEL_NAME or "").lower()
+    if model.startswith("deepseek-v4"):
+        payload["thinking"] = {"type": "disabled"}
+    return payload
+
+
 def chat_completion(messages: list[dict]) -> str:
     """Call DeepSeek (OpenAI-compatible) and return assistant text."""
     response = httpx.post(
@@ -15,7 +29,7 @@ def chat_completion(messages: list[dict]) -> str:
             "Authorization": f"Bearer {config.LLM_MODEL_API_KEY}",
             "Content-Type": "application/json",
         },
-        json={"model": config.LLM_MODEL_NAME, "messages": messages},
+        json=_llm_payload(messages),
         timeout=60.0,
     )
     response.raise_for_status()
@@ -32,11 +46,7 @@ def chat_completion_stream(messages: list[dict]):
             "Authorization": f"Bearer {config.LLM_MODEL_API_KEY}",
             "Content-Type": "application/json",
         },
-        json={
-            "model": config.LLM_MODEL_NAME,
-            "messages": messages,
-            "stream": True,
-        },
+        json=_llm_payload(messages, stream=True),
         timeout=60.0,
     ) as response:
         response.raise_for_status()

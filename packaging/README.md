@@ -33,7 +33,7 @@ RAGcore.app (Mac) / RAGcore-win-x64 (Win)
 |------|------|------|
 | Mac Apple 芯片 | `RAGcore-mac-arm64.zip` | 解压 → `.app` 拖入「应用程序」→ 双击 |
 | Mac Intel | `RAGcore-mac-x64.zip` | 同上 |
-| Windows x64 | `RAGcore-win-x64-setup.exe` 或绿色目录 | 安装 / 解压 → 双击 `RAGcore.vbs` |
+| Windows x64 | `RAGcore-win-x64-setup.exe` 或绿色目录 | 安装 / 解压 → 双击 `RAGcore.exe` |
 
 1. 弹出 **RAGcore 状态窗口**（表示后台在运行）
 2. 浏览器打开 http://127.0.0.1:8765
@@ -68,6 +68,8 @@ bash packaging/mac/build-app.sh
 - 同名 `.zip`（内含 `.app` + `安装说明.txt`）
 
 ### Windows
+
+详细步骤见 **[packaging/win/README.md](win/README.md)**（环境准备、模型、构建、安装包、排错）。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File packaging\win\build-win.ps1
@@ -104,9 +106,10 @@ packaging/
 │   ├── Info.plist
 │   └── ragcore            # .app 入口 shell
 └── win/
+    ├── README.md          # Windows 打包教程（维护者）
     ├── build-win.ps1
-    ├── RAGcore.cmd
-    ├── RAGcore.vbs
+    ├── build-launcher.ps1
+    ├── RagcoreApp.cs
     └── installer.iss
 ```
 

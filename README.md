@@ -6,9 +6,9 @@
 
 | 角色 | 说明 |
 |------|------|
-| **最终用户** | 下载桌面包，双击使用 → [packaging/用户安装说明.txt](packaging/用户安装说明.txt) |
-| **维护者打发布包** | → [packaging/README.md](packaging/README.md) |
-| **开发者改代码** | 见下方「本地开发」 |
+| **最终用户** | 下载桌面包 → [docs/新手教程.md](docs/新手教程.md) |
+| **维护者打发布包** | → [packaging/README.md](packaging/README.md)（Windows 详见 [packaging/win/README.md](packaging/win/README.md)） |
+| **开发者改代码** | 安装依赖与模型 → [docs/启动说明.md](docs/启动说明.md) |
 
 ## 目录结构
 
@@ -21,6 +21,8 @@ notes-kb/
 ```
 
 ## 本地开发
+
+完整环境准备、模型下载与启动步骤见 **[docs/启动说明.md](docs/启动说明.md)**。
 
 ```bash
 # 后端

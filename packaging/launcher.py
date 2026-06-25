@@ -9,12 +9,18 @@ import signal
 import subprocess
 import sys
 import time
-import tkinter as tk
 import urllib.error
 import urllib.request
 import webbrowser
 from pathlib import Path
-from tkinter import messagebox, ttk
+
+try:
+    import tkinter as tk
+    from tkinter import messagebox, ttk
+except ImportError:
+    tk = None  # type: ignore[assignment]
+    messagebox = None  # type: ignore[assignment]
+    ttk = None  # type: ignore[assignment]
 
 PORT = int(os.getenv("PORT", "8765"))
 HOST = "127.0.0.1"
@@ -245,6 +251,17 @@ class StatusWindow:
 
 
 def main() -> int:
+    if tk is None:
+        if platform.system() == "Windows":
+            print(
+                "Windows 桌面包请双击 RAGcore.exe 启动。\n"
+                "内置 Python 不含 tkinter，launcher.py 仅用于 Mac 桌面包。",
+                file=sys.stderr,
+            )
+        else:
+            print("缺少 tkinter，无法显示状态窗口。", file=sys.stderr)
+        return 1
+
     resources = bundle_resources_dir()
     data_dir = default_data_dir()
 
