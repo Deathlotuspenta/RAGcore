@@ -1,0 +1,22 @@
+# Core
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-dotenv>=1.0.0
+httpx>=0.27.0
+pydantic[email]>=2.0.0
+email-validator>=2.0.0
+python-multipart>=0.0.9
+
+# Auth — 必须装 python-jose，不要装 PyPI 上无关的 jose 包
+python-jose>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.0.0,<5.0.0
+
+# RAG
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+langchain-experimental>=0.0.50
+langchain-core>=0.1.0
+
+# Document parsing
+pymupdf>=1.23.0

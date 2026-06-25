@@ -1,50 +1,69 @@
 # RAGcore
 
-个人笔记知识库 RAG 核心：解析 → 语义切块 → 本地向量化 → Chroma 检索 → LLM 问答。
-
-## 功能
-
-- Markdown / 文本解析与语义分块（BGE + SemanticChunker）
-- 笔记入库、去重（content_hash）、向量检索
-- DeepSeek 等 OpenAI 兼容 API 生成回答
-
-## 快速开始
-
-```bash
-cp .env.example .env
-# 编辑 .env，填入 LLM_MODEL_API_KEY
-# 下载 embedding 模型到 ./models/bge-small-zh-v1.5
-
-pip install -r requirements.txt
-
-# 入库
-python -c "
-from server.parser import parse_file
-from server.kb_manager import add_note
-text = parse_file('test_data/sample.md')
-print(add_note('RAG入门', text, 'md'))
-"
-
-# 问答
-python -m server.llm
-```
+个人笔记知识库：**前后端分离** — Vue 3 前端 + FastAPI 后端 + JWT + RAG 问答。
 
 ## 目录结构
 
 ```
-server/
-  config.py          # 环境变量
-  parser.py          # 文件解析
-  chunker.py         # 语义切块
-  embedding_local.py # BGE 向量化
-  st_embeddings.py   # LangChain 转接头
-  kb_manager.py      # 入库 / 检索
-  llm.py             # RAG 问答
-storage/             # Chroma + SQLite（运行时生成，不提交）
-models/              # 本地模型（不提交）
+notes-kb/
+├── backend/              # 全部后端：API、RAG、模型、数据
+│   ├── server/           # FastAPI 应用
+│   ├── models/           # BGE 模型（git 忽略）
+│   ├── storage/          # Chroma + SQLite（git 忽略）
+│   ├── scripts/          # 运维脚本
+│   ├── test_data/
+│   ├── docs/
+│   ├── requirements.txt
+│   └── .env
+└── frontend/             # Vue 3 + Vite 纯前端
+    └── src/
 ```
 
-## 说明
+## 快速开始
 
-- `.env` 与 `storage/`、`models/` 不会进入版本库
-- 含密钥的本地测试笔记请勿提交（见 `.gitignore`）
+### 1. 后端
+
+```bash
+cd backend
+cp .env.example .env
+# 编辑 .env：LLM_MODEL_API_KEY、JWT_SECRET
+
+pip install -r requirements.txt
+uvicorn server.main:app --reload --port 8000
+```
+
+API 文档：http://127.0.0.1:8000/docs
+
+### 2. 前端
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+浏览器打开：http://localhost:5173（Vite 代理 `/api` → `8000`）
+
+### 3. 重排序模型（可选）
+
+```bash
+cd backend
+./scripts/download_reranker.sh
+```
+
+## 功能
+
+| 模块 | 说明 |
+|------|------|
+| 注册 / 登录 | JWT Bearer Token |
+| 笔记 CRUD | Markdown 编辑，异步切块 + 向量化 |
+| 文件导入 | `.md` / `.txt` / `.pdf` |
+| RAG 问答 | 向量检索 + 重排序 + 流式 Markdown，引用可查看原文 |
+
+## 部署
+
+- 前端：`npm run build`，Nginx 托管 `frontend/dist`
+- 后端：单独跑 uvicorn，配置 `CORS_ORIGINS`
+- 所有运行时数据在 `backend/storage/`、`backend/models/`
+
+数据库设计见 [backend/docs/SCHEMA.md](backend/docs/SCHEMA.md)。

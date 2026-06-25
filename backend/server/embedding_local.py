@@ -14,6 +14,11 @@ def embed_text(text: list[str]) -> list[list[float]]:
     return model.embed_documents(text)
 
 
+def embed_query(text: str) -> list[float]:
+    """Embed 检索 query（与文档向量同一模型）。"""
+    return model.embed_query(text)
+
+
 
 if __name__ == "__main__":
     text = ["Hello, world!", "Python"]

@@ -1,6 +1,0 @@
-chromadb
-sentence-transformers
-langchain-experimental
-langchain-core
-python-dotenv
-httpx
