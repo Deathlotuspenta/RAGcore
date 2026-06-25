@@ -5,19 +5,29 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# backend/ 目录（运行 uvicorn 时 cwd 应设为此目录）
-BACKEND_ROOT = Path(__file__).resolve().parent.parent
+from server.paths import (
+    BACKEND_ROOT,
+    DATA_DIR,
+    ENV_FILE,
+    PROJECT_ROOT,
+    STORAGE_DIR,
+    migrate_legacy_data,
+)
 
-load_dotenv(BACKEND_ROOT / ".env")
+migrate_legacy_data()
+load_dotenv(ENV_FILE)
 
 
-def _resolve_path(env_key: str, default_relative: str) -> str:
-    """将 .env 中的相对路径解析为基于 backend/ 的绝对路径。"""
+def _resolve_path(env_key: str, default_relative: str, *, base: Path | None = None) -> str:
+    """将 .env 中的相对路径解析为绝对路径。"""
     raw = os.getenv(env_key)
+    root = base or BACKEND_ROOT
     if raw:
         p = Path(raw)
-        return str(p if p.is_absolute() else BACKEND_ROOT / p)
-    return str(BACKEND_ROOT / default_relative)
+        return str(p if p.is_absolute() else root / p)
+    if default_relative.startswith("storage/"):
+        return str(STORAGE_DIR / Path(default_relative).name)
+    return str(root / default_relative)
 
 
 LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME")
@@ -35,7 +45,7 @@ JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "1440"))
 CORS_ORIGINS = [
     o.strip()
     for o in os.getenv(
-        "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+        "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://127.0.0.1:8765"
     ).split(",")
     if o.strip()
 ]
@@ -46,3 +56,16 @@ MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 RERANK_ENABLED = os.getenv("RERANK_ENABLED", "true").lower() in ("1", "true", "yes")
 RERANK_MODEL_NAME = _resolve_path("RERANK_MODEL_NAME", "models/bge-reranker-base")
 RERANK_CANDIDATES = int(os.getenv("RERANK_CANDIDATES", "20"))
+
+SERVE_STATIC = os.getenv("SERVE_STATIC", "").lower() in ("1", "true", "yes")
+STATIC_DIR = PROJECT_ROOT / "frontend" / "dist"
+APP_PORT = int(os.getenv("PORT", "8765"))
+
+
+def reload_llm_settings() -> None:
+    """Reload LLM-related env vars after settings API update."""
+    global LLM_MODEL_NAME, LLM_MODEL_URL, LLM_MODEL_API_KEY
+    load_dotenv(ENV_FILE, override=True)
+    LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME")
+    LLM_MODEL_URL = os.getenv("LLM_MODEL_URL")
+    LLM_MODEL_API_KEY = os.getenv("LLM_MODEL_API_KEY")

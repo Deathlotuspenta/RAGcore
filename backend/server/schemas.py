@@ -100,3 +100,18 @@ class ChatSource(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: list[ChatSource]
+
+
+# --- Settings ---
+
+class LlmSettingsResponse(BaseModel):
+    model_name: str
+    model_url: str
+    api_key_set: bool
+    api_key_masked: str
+
+
+class LlmSettingsUpdate(BaseModel):
+    model_name: str | None = Field(default=None, min_length=1, max_length=128)
+    model_url: str | None = Field(default=None, min_length=8, max_length=512)
+    api_key: str | None = Field(default=None, min_length=10, max_length=256)

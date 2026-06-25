@@ -1,20 +1,21 @@
 """按语义切分文档：在相邻句子语义差异较大的位置下刀，而非固定字数。"""
 
-from langchain_experimental.text_splitter import SemanticChunker
-from server.embedding_local import model
+from functools import lru_cache
 
-# SemanticChunker 流程：拆句 → 逐句 embed → 算相邻句余弦距离 → 在距离突变处切分
-_splitter = SemanticChunker(
-    embeddings=model,
-    # percentile：取距离分布的第 N 百分位作为切分阈值
-    breakpoint_threshold_type="percentile",
-    # 越小切得越碎（块越多），越大越保守（块越少）；90~95 是常见起点
-    breakpoint_threshold_amount=90,
-    # 默认 regex 偏英文标点，中文文档需显式指定
-    sentence_split_regex=r"(?<=[。！？.?!])\s+",
-    # BGE 单条输入有长度上限，buffer_size=0 避免多句拼接后超长
-    buffer_size=0,
-)
+from langchain_experimental.text_splitter import SemanticChunker
+
+from server.embedding_local import _get_embeddings
+
+
+@lru_cache(maxsize=1)
+def _get_splitter() -> SemanticChunker:
+    return SemanticChunker(
+        embeddings=_get_embeddings(),
+        breakpoint_threshold_type="percentile",
+        breakpoint_threshold_amount=90,
+        sentence_split_regex=r"(?<=[。！？.?!])\s+",
+        buffer_size=0,
+    )
 
 
 def chunk(text: str) -> list[str]:
@@ -22,11 +23,10 @@ def chunk(text: str) -> list[str]:
     text = text.strip()
     if not text:
         return []
-    return _splitter.split_text(text)
+    return _get_splitter().split_text(text)
 
 
 if __name__ == "__main__":
-    # 测试文本需包含多个不同话题，否则相邻句语义相近，只会得到 1 块
     text = """
     Python 是一种编程语言，适合写脚本和数据分析。
     它的语法简洁，入门比较容易。

@@ -1,0 +1,8 @@
+#!/bin/bash
+# RAGcore.app entry — start bundled server and open browser.
+set -euo pipefail
+CONTENTS="$(cd "$(dirname "$0")/.." && pwd)"
+RESOURCES="$CONTENTS/Resources"
+export RAGCORE_BUNDLE=1
+export RAGCORE_BUNDLE_DIR="$RESOURCES"
+exec "$RESOURCES/python/bin/python3" "$RESOURCES/launcher.py"

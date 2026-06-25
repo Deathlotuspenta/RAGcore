@@ -160,6 +160,14 @@ __marimo__/
 # RAGcore project runtime data (all under backend/)
 backend/storage/
 backend/models/
+backend/vendor/
+backend/.venv/
+
+# Release artifacts
+dist/
+
+# macOS
+.DS_Store
 
 # Frontend
 frontend/node_modules/

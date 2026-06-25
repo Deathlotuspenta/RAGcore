@@ -9,10 +9,19 @@ from server import config
 
 logger = logging.getLogger(__name__)
 
+_reranker_loaded = False
+
+
+def is_reranker_loaded() -> bool:
+    return _reranker_loaded
+
 
 @lru_cache(maxsize=1)
 def _get_reranker() -> CrossEncoder:
-    return CrossEncoder(config.RERANK_MODEL_NAME)
+    global _reranker_loaded
+    model = CrossEncoder(config.RERANK_MODEL_NAME)
+    _reranker_loaded = True
+    return model
 
 
 def rerank(query: str, hits: list[dict], top_k: int) -> list[dict]:

@@ -20,6 +20,7 @@ function logout() {
         <nav>
           <router-link to="/notes">笔记</router-link>
           <router-link to="/chat">问答</router-link>
+          <router-link to="/settings">设置</router-link>
         </nav>
         <div class="user">
           <span class="muted">{{ auth.email }}</span>

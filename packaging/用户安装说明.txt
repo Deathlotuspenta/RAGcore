@@ -1,0 +1,44 @@
+RAGcore 安装说明
+================
+
+无需安装 Python。双击即可使用。
+
+
+系统要求
+--------
+- macOS 11+ 或 Windows 10/11 x64
+- 磁盘约 4 GB
+- RAG 问答需联网（设置页配置 DeepSeek API Key）
+
+
+Mac
+---
+1. 下载对应版本：Apple 芯片用 arm64，Intel 用 x64
+2. 解压，将 RAGcore.app 拖入「应用程序」
+3. 双击图标：
+   - 弹出「RAGcore」状态窗口（后台服务运行中）
+   - 浏览器自动打开 http://127.0.0.1:8765
+   - 关闭状态窗口 = 停止服务（笔记不丢）
+
+无法验证开发者：系统设置 → 隐私与安全性 → 仍要打开
+
+
+Windows
+-------
+- 安装版：运行 setup.exe，从开始菜单或桌面启动
+- 绿色版：解压文件夹，双击 RAGcore.vbs
+
+
+数据位置（更新应用不删除）
+--------------------------
+  Mac:     ~/Library/Application Support/RAGcore/
+  Windows: %APPDATA%\RAGcore\
+
+
+常见问题
+--------
+- 网页数秒应打开；超时看 logs/ragcore.err.log
+- 首次问答慢：正在加载本地模型，约 30 秒
+- 问答无响应：检查设置中的 API Key 与网络
+
+更多说明见 packaging/README.md
