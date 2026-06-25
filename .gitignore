@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+ENV/
+
+# Env & secrets
+.env
+.envrc
+
+# IDE / local tools
+.claude/
+.idea/
+.vscode/
+tempCodeRunnerFile.py
+
+# Project runtime data
+storage/
+models/
+
+# Sensitive local test notes (API keys, credentials)
+test_data/台账.md
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
