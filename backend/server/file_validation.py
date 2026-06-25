@@ -121,4 +121,4 @@ def _is_text_content(data: bytes) -> bool:
 
 
 def supported_formats_message() -> str:
-    return "支持导入：.md、.markdown、.txt、.pdf（不支持图片、音视频等）"
+    return "支持批量导入：.md、.markdown、.txt、.pdf"

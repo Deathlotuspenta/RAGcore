@@ -32,3 +32,13 @@ export function uploadNote(file, title = '') {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
+
+export function uploadNotesBatch(files) {
+  const form = new FormData()
+  for (const file of files) {
+    form.append('files', file)
+  }
+  return client.post('/api/notes/upload/batch', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}

@@ -42,15 +42,26 @@ function pickFile() {
 }
 
 async function onFileChange(event) {
-  const file = event.target.files?.[0]
+  const files = [...(event.target.files || [])]
   event.target.value = ''
-  if (!file) return
+  if (!files.length) return
 
   submitting.value = true
   error.value = ''
   try {
-    const { data } = await notesApi.uploadNote(file)
-    tasksStore.trackTask(data.task_id)
+    if (files.length === 1) {
+      const { data } = await notesApi.uploadNote(files[0])
+      tasksStore.trackTask(data.task_id)
+    } else {
+      const { data } = await notesApi.uploadNotesBatch(files)
+      for (const item of data.items) {
+        if (item.task_id) tasksStore.trackTask(item.task_id)
+      }
+      const failed = data.items.filter((i) => i.error)
+      if (failed.length) {
+        error.value = `${data.message}；${failed.length} 个失败：${failed.map((f) => f.filename).join('、')}`
+      }
+    }
   } catch (e) {
     error.value = e.response?.data?.detail || '导入失败'
   } finally {
@@ -82,7 +93,7 @@ onUnmounted(() => {
   <div>
     <div v-if="submitting" class="overlay-loading">
       <span class="spinner lg" />
-      <p class="muted">正在上传并提交任务…</p>
+      <p class="muted">正在提交导入任务…</p>
     </div>
 
     <div class="toolbar">
@@ -93,11 +104,11 @@ onUnmounted(() => {
           type="file"
           class="hidden-input"
           accept=".md,.markdown,.txt,.pdf"
+          multiple
           @change="onFileChange"
         />
         <button class="btn btn-outline" :disabled="submitting" @click="pickFile">
-          <span v-if="submitting" class="spinner sm" />
-          {{ submitting ? '提交中…' : '导入文件' }}
+          批量导入文件
         </button>
         <button class="btn" @click="router.push('/notes/new')">新建笔记</button>
       </div>
@@ -109,7 +120,7 @@ onUnmounted(() => {
     <p v-else-if="error" class="error">{{ error }}</p>
 
     <div v-else-if="notes.length === 0" class="card empty">
-      <p>还没有笔记，可「新建笔记」或「导入文件」（.md / .txt / .pdf）。</p>
+      <p>还没有笔记，可「新建笔记」或「批量导入文件」（.md / .txt / .pdf）。</p>
     </div>
 
     <ul v-else class="note-list">
@@ -139,6 +150,7 @@ onUnmounted(() => {
 .actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 .hidden-input {
   display: none;
@@ -178,8 +190,5 @@ h1 {
 .btn-sm {
   padding: 0.35rem 0.75rem;
   font-size: 0.875rem;
-}
-.btn .spinner {
-  margin-right: 0.25rem;
 }
 </style>

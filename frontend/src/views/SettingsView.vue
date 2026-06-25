@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import * as authApi from '../api/auth'
 import * as settingsApi from '../api/settings'
 
 const modelName = ref('deepseek-chat')
@@ -12,14 +13,16 @@ const saving = ref(false)
 const error = ref('')
 const status = ref('')
 
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const savingPassword = ref(false)
+const passwordError = ref('')
+const passwordStatus = ref('')
+
 const presets = [
   {
     label: 'DeepSeek Chat',
-    model_name: 'deepseek-chat',
-    model_url: 'https://api.deepseek.com/v1/chat/completions',
-  },
-  {
-    label: 'DeepSeek V3',
     model_name: 'deepseek-chat',
     model_url: 'https://api.deepseek.com/v1/chat/completions',
   },
@@ -70,16 +73,86 @@ async function save() {
   }
 }
 
+async function savePassword() {
+  passwordError.value = ''
+  passwordStatus.value = ''
+
+  if (newPassword.value.length < 6) {
+    passwordError.value = '新密码至少 6 位'
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.value = '两次输入的新密码不一致'
+    return
+  }
+
+  savingPassword.value = true
+  try {
+    const { data } = await authApi.changePassword(
+      currentPassword.value,
+      newPassword.value
+    )
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+    passwordStatus.value = data.message || '密码已更新'
+  } catch (e) {
+    passwordError.value = e.response?.data?.detail || '修改失败'
+  } finally {
+    savingPassword.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
 <template>
   <div>
-    <h1>模型设置</h1>
-    <p class="muted">切换 DeepSeek 模型名称或 API Key（保存在本机 backend/.env）</p>
+    <h1>设置</h1>
+    <p class="muted">账号与模型配置</p>
 
-    <div v-if="loading" class="muted">加载中…</div>
-    <div v-else class="card form">
+    <div class="card form">
+      <h2>修改密码</h2>
+      <div class="field">
+        <label>当前密码</label>
+        <input
+          v-model="currentPassword"
+          type="password"
+          autocomplete="current-password"
+        />
+      </div>
+      <div class="field">
+        <label>新密码</label>
+        <input
+          v-model="newPassword"
+          type="password"
+          autocomplete="new-password"
+          placeholder="至少 6 位"
+        />
+      </div>
+      <div class="field">
+        <label>确认新密码</label>
+        <input
+          v-model="confirmPassword"
+          type="password"
+          autocomplete="new-password"
+        />
+      </div>
+      <p v-if="passwordStatus" class="status">{{ passwordStatus }}</p>
+      <p v-if="passwordError" class="error">{{ passwordError }}</p>
+      <button
+        class="btn"
+        :disabled="savingPassword || !currentPassword || !newPassword || !confirmPassword"
+        @click="savePassword"
+      >
+        {{ savingPassword ? '保存中…' : '更新密码' }}
+      </button>
+    </div>
+
+    <div v-if="loading" class="muted section">加载中…</div>
+    <div v-else class="card form section">
+      <h2>LLM 问答</h2>
+      <p class="muted hint">DeepSeek 模型与 API Key（保存在本机数据目录 .env）</p>
       <div class="presets">
         <span class="muted">快捷预设：</span>
         <button
@@ -129,6 +202,13 @@ h1 {
   margin-top: 1.25rem;
   max-width: 520px;
 }
+.section {
+  margin-top: 1.25rem;
+}
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
 .presets {
   display: flex;
   align-items: center;
@@ -139,6 +219,14 @@ h1 {
 .btn-sm {
   padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
+}
+.field {
+  margin-bottom: 1rem;
+}
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.875rem;
 }
 .hint {
   margin: 0.35rem 0 0;

@@ -15,9 +15,18 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 
 class UserResponse(BaseModel):
@@ -60,6 +69,17 @@ class NoteListItem(BaseModel):
 
 class ImportFormatsResponse(BaseModel):
     extensions: list[str]
+    message: str
+
+
+class BatchImportItem(BaseModel):
+    filename: str
+    task_id: str | None = None
+    error: str | None = None
+
+
+class BatchImportResponse(BaseModel):
+    items: list[BatchImportItem]
     message: str
 
 

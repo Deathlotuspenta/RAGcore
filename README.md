@@ -52,7 +52,7 @@ scripts/start-win.bat        # Windows
 |------|------|
 | 注册 / 登录 | JWT |
 | 笔记 CRUD | Markdown，异步切块向量化 |
-| 文件导入 | `.md` / `.txt` / `.pdf` |
+| 文件导入 | 批量 `.md` / `.txt` / `.pdf` |
 | RAG 问答 | 检索 + 重排序 + 流式回答 |
 | 设置 | 网页配置 LLM 与 API Key |
 

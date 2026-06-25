@@ -1,10 +1,12 @@
 """Note CRUD — all routes require JWT; scoped by user_id."""
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from server.auth.deps import get_current_user_id
 from server.file_validation import supported_formats_message
 from server.schemas import (
+    BatchImportItem,
+    BatchImportResponse,
     ImportFormatsResponse,
     NoteCreate,
     NoteListItem,
@@ -39,6 +41,36 @@ async def upload_note(
     return TaskAcceptedResponse(
         task_id=task_id,
         message="文件已提交，正在后台建立索引",
+    )
+
+
+@router.post("/upload/batch", response_model=BatchImportResponse, status_code=status.HTTP_202_ACCEPTED)
+async def upload_notes_batch(
+    files: list[UploadFile] = File(...),
+    user_id: str = Depends(get_current_user_id),
+):
+    if not files:
+        return BatchImportResponse(items=[], message="未选择文件")
+    if len(files) > 50:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "单次最多导入 50 个文件")
+
+    items: list[BatchImportItem] = []
+    ok = 0
+    for f in files:
+        name = f.filename or "未命名"
+        try:
+            data = await f.read()
+            note_title, content, file_type = note_service.parse_import_file(name, data)
+            task_id = task_service.submit_import(user_id, note_title, content, file_type)
+            items.append(BatchImportItem(filename=name, task_id=task_id))
+            ok += 1
+        except Exception as e:
+            detail = getattr(e, "detail", None) or str(e)
+            items.append(BatchImportItem(filename=name, error=str(detail)))
+
+    return BatchImportResponse(
+        items=items,
+        message=f"已提交 {ok}/{len(files)} 个文件",
     )
 
 
